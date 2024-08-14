@@ -1,0 +1,11 @@
+---
+- name: Test Setup
+  hosts: all
+  become: yes
+  tasks:
+    - name: Read Server Parameters
+      setup:
+      register: system_vars
+    
+    - debug:
+        var: system_vars
