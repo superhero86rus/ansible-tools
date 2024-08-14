@@ -1,0 +1,7 @@
+---
+- name: Test Connection to Server
+  hosts: all
+  become: no
+  tasks:
+    - name: Ping Pong with Server
+      ping:

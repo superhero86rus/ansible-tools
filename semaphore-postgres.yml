@@ -1,0 +1,88 @@
+services:
+  # uncomment this section and comment out the mysql section to use postgres instead of mysql
+  postgres:
+    restart: unless-stopped
+    image: postgres:latest
+    hostname: postgres
+    volumes: 
+     - semaphore-pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: semaphore
+      POSTGRES_PASSWORD: semaphore
+      POSTGRES_DB: semaphore
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U semaphore -d semaphore" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+  # if you wish to use postgres, comment the mysql service section below 
+  # mysql:
+  #   restart: unless-stopped
+  #   image: mysql:8.0
+  #   hostname: mysql
+  #   volumes:
+  #     - semaphore-mysql:/var/lib/mysql
+  #   environment:
+  #     MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+  #     MYSQL_DATABASE: semaphore
+  #     MYSQL_USER: semaphore
+  #     MYSQL_PASSWORD: semaphore
+  pgadmin:
+    restart: unless-stopped
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+       - pgadmin-data:/var/lib/pgadmin
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+        restart: true
+
+  semaphore:
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    image: semaphoreui/semaphore:latest
+    environment:
+      SEMAPHORE_DB_USER: semaphore
+      SEMAPHORE_DB_PASS: semaphore
+      # SEMAPHORE_DB_HOST: mysql # for postgres, change to: postgres
+      SEMAPHORE_DB_HOST: postgres
+      # SEMAPHORE_DB_PORT: 3306 # change to 5432 for postgres
+      SEMAPHORE_DB_PORT: 5432
+      # SEMAPHORE_DB_DIALECT: mysql # for postgres, change to: postgres
+      SEMAPHORE_DB_DIALECT: postgres
+      SEMAPHORE_DB: semaphore
+      SEMAPHORE_PLAYBOOK_PATH: /tmp/semaphore/
+      SEMAPHORE_ADMIN_PASSWORD: semaphore
+      SEMAPHORE_ADMIN_NAME: semaphore
+      SEMAPHORE_ADMIN_EMAIL: semaphoredmin@localhost
+      SEMAPHORE_ADMIN: semaphore
+      # head -c32 /dev/urandom | base64
+      SEMAPHORE_ACCESS_KEY_ENCRYPTION: Eme9ebFnTGOwLSJqwn0g9l5KNiQdSZmBgQePAJtlTQo=
+      SEMAPHORE_LDAP_ACTIVATED: 'no' # if you wish to use ldap, set to: 'yes' 
+      SEMAPHORE_LDAP_HOST: dc01.local.example.com
+      SEMAPHORE_LDAP_PORT: '636'
+      SEMAPHORE_LDAP_NEEDTLS: 'yes'
+      SEMAPHORE_LDAP_DN_BIND: 'uid=bind_user,cn=users,cn=accounts,dc=local,dc=shiftsystems,dc=net'
+      SEMAPHORE_LDAP_PASSWORD: 'ldap_bind_account_password'
+      SEMAPHORE_LDAP_DN_SEARCH: 'dc=local,dc=example,dc=com'
+      SEMAPHORE_LDAP_SEARCH_FILTER: "(\u0026(uid=%s)(memberOf=cn=ipausers,cn=groups,cn=accounts,dc=local,dc=example,dc=com))"
+      TZ: UTC
+    depends_on:
+      # - mysql # for postgres, change to: postgres
+      - postgres
+volumes:
+  semaphore-pgdata: # to use postgres, switch to: semaphore-postgres
+  pgadmin-data:
+
+# ЗАПУСК:
+# mkdir pgadmin && sudo chown -R 5050:80 pgadmin
+# docker compose -f semaphore-postgres.yml up -d
+# Делаем docker inspect ansible-tools-pgadmin-1| grep IPAddress и подключаемся pgadmin к данному IP
