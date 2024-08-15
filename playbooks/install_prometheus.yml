@@ -1,0 +1,13 @@
+---
+- name: Install Prometheus on Server
+  hosts: all
+  gather_facts: false
+  become: true
+  become_user: root
+  tasks:
+    - name: Install Prometheus
+      ansible.builtin.script: ../provision/prometheus.install.sh
+      register: result
+
+    - name: Show Output of Prometheus Install Process
+      ansible.builtin.debug: var=result.stdout_lines
