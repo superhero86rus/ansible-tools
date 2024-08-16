@@ -15,4 +15,3 @@ sudo apt update -y
 sudo apt install docker-compose-plugin -y
 
 sudo usermod -aG docker ${USER}
-init 6
