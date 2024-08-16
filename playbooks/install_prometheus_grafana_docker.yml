@@ -15,4 +15,4 @@
     - name: "Install Docker containers: Prometheus & Grafana"
       command: docker compose -f docker-compose.yml up -d
       args:
-        chdir: /provision/prometheus-grafana-docker
+        chdir: ../provision/prometheus-grafana-docker
