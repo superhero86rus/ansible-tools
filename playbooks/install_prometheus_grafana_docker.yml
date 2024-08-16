@@ -1,5 +1,5 @@
 ---
-- name: "Install Prometheus on Server"
+- name: "Install Prometheus & Grafana on Server"
   hosts: all
   gather_facts: false
   become: true
