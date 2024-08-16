@@ -5,6 +5,9 @@
   become: true
   become_user: root
   tasks:
+    - name: Ping Pong with Server
+      ping:
+
     - name: "Install Docker and Docker Compose"
       ansible.builtin.script: ../provision/compose.install.sh
       register: result
